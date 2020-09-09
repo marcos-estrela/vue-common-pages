@@ -6,11 +6,13 @@
       <button @click="data = demoData.registerPage">Register Page</button>
       <button @click="data = demoData.changePasswordPage">Change Password Page</button>
     </div>
-    <common-page                                                                                   
+    <common-page
       :color="data.color"
       :texts="data.texts"
       :inputs="data.inputs"
       :links="data.links"
+      :validations="data.validations"
+      :errorMessages="data.errorMessages"
       @submit="handleForm"
     />
   </div>
@@ -19,7 +21,7 @@
 
 <script>
 import demoData from "./data.js";
-import CommonPage from "./components/CommonPage"
+import CommonPage from "./components/CommonPage";
 
 export default {
   name: "Demo",
