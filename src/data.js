@@ -1,3 +1,5 @@
+import { email, required, minLength } from "vuelidate/lib/validators";
+
 const loginPage = {
     color: "#00bfd8",
     texts: {
@@ -16,6 +18,26 @@ const loginPage = {
             placeholder: "Password",
         },
     ],
+    validations: {
+        email: {
+            required,
+            email
+        },
+        password: {
+            required,
+            minLength: minLength(8),
+        },
+    },
+    errorMessages: {
+        email: {
+            required: "Email is required",
+            email: "Must be a valid email address",
+        },
+        password: {
+            required: "Password is required",
+            minLength: "Password must have at least 8 characters",
+        },
+    },
     links: [
         {
             id: "forgotPassword",
@@ -49,7 +71,7 @@ const registerPage = {
     color: "#8B0000",
     texts: {
         title: "Create account",
-        button: "Create",  
+        button: "Create",
     },
     inputs: [
         {
