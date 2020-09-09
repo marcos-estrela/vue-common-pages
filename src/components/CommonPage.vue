@@ -3,20 +3,20 @@
     <div class="main">
       <span v-if="texts.title" class="title" :style="textColor" align="center">{{texts.title}}</span>
       <span v-if="texts.description" class="description">{{texts.description}}</span>
-      <form>
-        <input
-          v-for="input in inputs"
-          v-model="formData[input.id]"
-          :key="input.id"
-          :type="input.type ? input.type : 'text'"
-          :placeholder="input.placeholder"
-        />
-        <a
-          v-if="texts.button"
-          class="submit"
-          :style="buttonBackgroundColor"
-          @click="$emit('submit', formData)"
-        >{{texts.button}}</a>
+      <form @submit.prevent="submit" novalidate>
+        <div class="form-input" v-for="input in inputs" :key="input.id">
+          <input
+            v-model.trim="$v.formData[input.id].$model"
+            :style="$v.formData[input.id].$dirty && $v.formData[input.id].$invalid ? 'border-color: red': ''"
+            :type="input.type ? input.type : 'text'"
+            :placeholder="input.placeholder"
+          />
+          <div
+            class="error-message"
+            v-if="$v.formData[input.id].$dirty && $v.formData[input.id].$invalid"
+          >{{errorMessage(input.id)}}</div>
+        </div>
+        <button v-if="texts.button" type="submit" :style="buttonBackgroundColor">{{texts.button}}</button>
         <a
           v-for="link in links"
           :key="link.id"
@@ -52,12 +52,31 @@ export default {
       type: Object,
       default: () => {},
     },
+    errorMessages: {
+      type: Object,
+      default: () => {},
+    },
   },
 
   data() {
-    return {
-      formData: {},
-    };
+    // Initilize formData
+    const formData = {};
+    this.inputs.forEach((el) => {
+      formData[el.id] = "";
+      this.input;
+    });
+    return { formData: formData };
+  },
+
+  validations() {
+    var internalValidations = this.validations;
+    if (!internalValidations) {
+      internalValidations = {};
+      this.inputs.forEach((el) => {
+        internalValidations[el.id] = {};
+      });
+    }
+    return { formData: internalValidations };
   },
 
   computed: {
@@ -86,6 +105,24 @@ export default {
       const g = parseInt(result[2], 16);
       const b = parseInt(result[3], 16);
       return result ? `${r},${g},${b}` : null;
+    },
+    errorMessage(field) {
+      const fieldValidations = Object.keys(this.validations[field]);
+      for (let validationRule of fieldValidations) {
+        const validation = this.$v.formData[field][validationRule];
+        if (validation === false) {
+          return this.errorMessages[field][validationRule];
+        }
+      }
+      return "";
+    },
+    submit() {
+      this.$v.$touch();
+      if (this.$v.$invalid) {
+        this.submitStatus = "ERROR";
+      } else {
+        this.$emit("submit", this.formData);
+      }
     },
   },
 };
@@ -118,12 +155,13 @@ export default {
 }
 
 form {
+  width: 100%;
   display: grid;
   justify-items: center;
 }
 
 input {
-  width: 100%;
+  width: 80%;
   color: rgb(38, 50, 56);
   font-weight: 700;
   font-size: 14px;
@@ -136,7 +174,6 @@ input {
   box-sizing: border-box;
   border: 2px solid rgba(0, 0, 0, 0.02);
   text-align: center;
-  margin-bottom: 25px;
 }
 
 input:focus {
@@ -148,8 +185,14 @@ input:focus {
   padding-bottom: 25px;
 }
 
-.submit {
-  width: 30%;
+.form-input {
+  width: 100%;
+  position: relative;
+  margin-bottom: 25px;
+}
+
+button {
+  width: 55%;
   cursor: pointer;
   border-radius: 5em;
   color: #fff;
@@ -163,6 +206,13 @@ input:focus {
   cursor: pointer;
   text-shadow: 0px 0px 3px rgba(117, 117, 117, 0.12);
   margin-top: 15px;
+}
+
+.error-message {
+  width: 100%;
+  position: absolute;
+  color: red;
+  font-size: 12px;
 }
 
 @media (max-width: 600px) {
